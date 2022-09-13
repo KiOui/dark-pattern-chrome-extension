@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 /dist
+.idea
 
 
 # local env files
@@ -22,8 +23,8 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-# Vue Browser Extension Output
-*.pem
-*.pub
-*.zip
-/artifacts
+# Ignore env
+.env
+
+# Igore build
+dist

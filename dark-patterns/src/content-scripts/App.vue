@@ -1,6 +1,6 @@
 <template>
-  <div class="popupview">
-    <p>Test popup</p>
+  <div>
+    <p>Test app</p>
   </div>
 </template>
 
