@@ -1,5 +1,6 @@
 {
   "name": "Dark pattern hider",
+  "description": "This is a test description",
   "version": "0.0.1",
   "manifest_version": 3,
   "action": {
@@ -8,7 +9,7 @@
       "48": "assets/icon48.png",
       "128": "assets/icon128.png"
     },
-    "default_title": "Popup Sample",
+    "default_title": "Dark pattern highlighter",
     "default_popup": "popup/index.html"
   },
   "icons": {
@@ -21,7 +22,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://github.com/*"],
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
       "run_at": "document_start",
       "js": ["content-scripts/main.ts"]
     }
@@ -33,6 +37,8 @@
     }
   ],
   "permissions": [
-    "identity", "storage", "tabs"
+    "storage",
+    "activeTab",
+    "scripting"
   ]
 }

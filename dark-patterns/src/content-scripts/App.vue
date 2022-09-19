@@ -1,8 +1,4 @@
-<template>
-  <div>
-    <p>Test app</p>
-  </div>
-</template>
+<template></template>
 
 <script setup lang="ts"></script>
 

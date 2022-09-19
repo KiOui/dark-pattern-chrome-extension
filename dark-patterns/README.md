@@ -1,2 +1,0 @@
-# Dark pattern hider
-
