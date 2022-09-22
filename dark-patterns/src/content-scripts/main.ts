@@ -5,22 +5,22 @@ const PAGE_REFRESH_TIMEOUT = 10000;
 let DARK_PATTERN_TIMER: number | null;
 
 window.onload = async () => {
-  const body = document.querySelector("body");
-  if (body !== null) {
-    const analyzers: { [name: string]: PageAnalyzer } = setupAnalyzers();
-    runAndSetTimeout(body, analyzers, PAGE_REFRESH_TIMEOUT);
-  }
+  const analyzers: { [name: string]: PageAnalyzer } = setupAnalyzers();
+  runAndSetTimeout(analyzers, PAGE_REFRESH_TIMEOUT);
 };
 
-function runAndSetTimeout(body, analyzers, timeout) {
+function runAndSetTimeout(analyzers, timeout) {
   if (DARK_PATTERN_TIMER !== null) {
     window.clearTimeout(DARK_PATTERN_TIMER);
   }
   try {
-    analysePageContent(body, analyzers);
+    const content = document.querySelector("body");
+    if (content !== null) {
+      analysePageContent(content, analyzers);
+    }
   } finally {
     DARK_PATTERN_TIMER = window.setTimeout(
-      runAndSetTimeout.bind(null, body, analyzers, timeout),
+      runAndSetTimeout.bind(null, analyzers, timeout),
       PAGE_REFRESH_TIMEOUT
     );
   }
@@ -39,7 +39,6 @@ function analysePageContent(
   pageContent: HTMLElement,
   analyzers: { [name: string]: PageAnalyzer }
 ) {
-  // TODO: Analyze iframes as well?
   const detectedPatterns: { [type: string]: HTMLElement[] } = {};
   for (const analyzerType in analyzers) {
     const analyzer = analyzers[analyzerType];
