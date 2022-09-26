@@ -1,6 +1,5 @@
 {
-  "name": "Dark pattern hider",
-  "description": "This is a test description",
+  "name": "Highlight",
   "version": "0.0.1",
   "manifest_version": 3,
   "action": {
@@ -9,7 +8,7 @@
       "48": "assets/icon48.png",
       "128": "assets/icon128.png"
     },
-    "default_title": "Dark pattern highlighter",
+    "default_title": "Highlight",
     "default_popup": "popup/index.html"
   },
   "icons": {

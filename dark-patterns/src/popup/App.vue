@@ -11,18 +11,28 @@
       </div>
     </header>
     <div class="popup-content m-3">
-      <h2>Dark patterns</h2>
+      <div class="d-flex">
+        <h2 class="mb-0 me-auto">Dark patterns</h2>
+        <span
+          v-if="darkPatternsFound === 0"
+          class="found-dark-patterns badge bg-success"
+          >{{ darkPatternsFound }}</span
+        >
+        <span v-else class="found-dark-patterns badge bg-danger">{{
+          darkPatternsFound
+        }}</span>
+      </div>
       <hr />
       <ExplanationSection v-bind:explanation="explanation" />
     </div>
     <footer class="footer d-flex p-3 flex-row">
-      <button class="btn btn-light w-100">Show patterns</button>
+      <button class="btn btn-success w-100">Show patterns</button>
     </footer>
   </div>
 </template>
 
 <script lang="ts">
-import ExplanationSection from "../components/ExplanationSection.vue";
+import ExplanationSection from "@/components/ExplanationSection.vue";
 
 export default {
   name: "App",
@@ -31,6 +41,7 @@ export default {
   },
   data() {
     return {
+      darkPatternsFound: 0,
       explanation: {
         title: "Countdown Timer",
         explanation: "This is a test explanation",
@@ -44,5 +55,17 @@ export default {
 <style scoped>
 .header {
   background-color: var(--background-shade);
+}
+
+.settings {
+  cursor: pointer;
+}
+
+.settings:hover svg {
+  animation: color 200ms;
+}
+
+.settings:hover > svg {
+  color: #d3d4d5;
 }
 </style>

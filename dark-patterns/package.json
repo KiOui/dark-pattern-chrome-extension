@@ -1,5 +1,5 @@
 {
-  "name": "sample-project",
+  "name": "highlight",
   "version": "1.0.0",
   "scripts": {
     "build": "rollup -c",
@@ -8,7 +8,7 @@
     "fmt": "prettier ./*.{js,json} src/**/*.{ts,vue} --write"
   },
   "dependencies": {
-    "@babel/core": "^7.19.0",
+    "@babel/core": "^7.19.1",
     "@fortawesome/fontawesome-svg-core": "^6.2.0",
     "@fortawesome/free-brands-svg-icons": "^6.2.0",
     "@fortawesome/free-regular-svg-icons": "^6.2.0",
@@ -54,11 +54,11 @@
     "rollup": "^2.38.5",
     "rollup-plugin-chrome-extension": "^3.5.3",
     "rollup-plugin-empty-dir": "^1.0.4",
-    "rollup-plugin-import-css": "^3.0.3",
+    "rollup-plugin-inject-process-env": "^1.3.1",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-typescript2": "^0.31.0",
     "rollup-plugin-vue": "^6.0.0",
     "rollup-plugin-zip": "^1.0.1",
-    "typescript": "^4.8.3"
+    "typescript": "^4.4.3"
   }
 }
