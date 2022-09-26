@@ -1,6 +1,11 @@
-import { setBadge } from "./inc/services";
+import { setBadge } from "@/inc/services";
+import MessageSender = chrome.runtime.MessageSender;
 
-function setBadgeHandler(message, sender, sendResponse) {
+function setBadgeHandler(
+  message: { params: { text: string; color: string } },
+  sender: MessageSender,
+  sendResponse: (response: boolean) => void
+) {
   if (sender.tab !== undefined && sender.tab.id !== undefined) {
     setBadge(message.params.text, message.params.color, sender.tab.id).then(
       (badgeSet) => {

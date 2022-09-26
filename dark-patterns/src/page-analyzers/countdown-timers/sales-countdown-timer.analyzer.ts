@@ -6,6 +6,7 @@ https://wordpress.org/plugins/sales-countdown-timer/
 class SalesCountdownTimerAnalyzer extends PageAnalyzer {
   type = "sales-countdown-timer-countdown-timer";
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
   alterBlock(element: HTMLElement): void {}
 
   analyzePageContent(pageContent: HTMLElement): HTMLElement[] {

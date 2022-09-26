@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import App from "./App.vue";
+import App from "@/view/popup.vue";
 /* import the fontawesome core */
 import { library } from "@fortawesome/fontawesome-svg-core";
 

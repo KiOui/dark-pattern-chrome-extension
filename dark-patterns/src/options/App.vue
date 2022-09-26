@@ -31,7 +31,7 @@ import { Vue, Options } from "vue-class-component";
 export default class HighlightSettings extends Vue {
   loaded = false;
 
-  formData: { [key: string]: any } = {
+  formData: { [key: string]: boolean } = {
     showBadgeNumber: true,
   };
 

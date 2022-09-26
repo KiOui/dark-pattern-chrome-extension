@@ -1,5 +1,3 @@
-/// <reference types="chrome"/>
-
 import CountdownTimerAnalyzers from "@/page-analyzers/countdown-timers/collection";
 import PageAnalyzer from "@/page-analyzers/page-analyzer";
 
@@ -11,7 +9,10 @@ window.onload = async () => {
   runAndSetTimeout(analyzers, PAGE_REFRESH_TIMEOUT);
 };
 
-function runAndSetTimeout(analyzers: any, timeout: any) {
+function runAndSetTimeout(
+  analyzers: { [key: string]: PageAnalyzer },
+  timeout: number
+) {
   if (DARK_PATTERN_TIMER !== null) {
     window.clearTimeout(DARK_PATTERN_TIMER);
   }

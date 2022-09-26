@@ -1,4 +1,4 @@
-import { setBadge } from "./inc/services";
+import { setBadge } from "@/inc/services";
 import MessageSender = chrome.runtime.MessageSender;
 
 function setBadgeHandler(

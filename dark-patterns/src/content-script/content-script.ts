@@ -1,5 +1,5 @@
-import CountdownTimerAnalyzers from "../page-analyzers/countdown-timers/collection";
-import PageAnalyzer from "../page-analyzers/page-analyzer";
+import CountdownTimerAnalyzers from "@/page-analyzers/countdown-timers/collection";
+import PageAnalyzer from "@/page-analyzers/page-analyzer";
 
 const PAGE_REFRESH_TIMEOUT = 10000;
 let DARK_PATTERN_TIMER: number | null;
@@ -9,7 +9,10 @@ window.onload = async () => {
   runAndSetTimeout(analyzers, PAGE_REFRESH_TIMEOUT);
 };
 
-function runAndSetTimeout(analyzers, timeout) {
+function runAndSetTimeout(
+  analyzers: { [key: string]: PageAnalyzer },
+  timeout: number
+) {
   if (DARK_PATTERN_TIMER !== null) {
     window.clearTimeout(DARK_PATTERN_TIMER);
   }
@@ -28,7 +31,7 @@ function runAndSetTimeout(analyzers, timeout) {
 
 function setupAnalyzers(): { [name: string]: PageAnalyzer } {
   const analyzers: PageAnalyzer[] = CountdownTimerAnalyzers;
-  const analyzersDict = {};
+  const analyzersDict: { [key: string]: PageAnalyzer } = {};
   for (const analyzer of analyzers) {
     analyzersDict[analyzer.getType()] = analyzer;
   }

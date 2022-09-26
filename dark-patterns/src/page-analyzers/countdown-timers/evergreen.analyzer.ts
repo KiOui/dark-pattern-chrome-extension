@@ -6,6 +6,7 @@ https://intellywp.com/evergreen-countdown-timer/
 class EvergreenAnalyzer extends PageAnalyzer {
   type = "evergreen-countdown-timer";
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
   alterBlock(element: HTMLElement): void {}
 
   analyzePageContent(pageContent: HTMLElement): HTMLElement[] {

@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "Highlight",
+    "version": "0.0.1",
+    "background": {
+        "service_worker": "/background.js"
+    },
+    "action": {
+        "default_popup": "/popup.html",
+        "default_title": "Highlight"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "/contentScript.js"
+            ],
+            "run_at": "document_start"
+        }
+    ],
+    "options_page": "options.html",
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting"
+    ]
+}

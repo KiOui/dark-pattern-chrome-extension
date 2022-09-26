@@ -6,6 +6,7 @@ https://www.essentialplugin.com/wordpress-plugin/countdown-timer-ultimate/
 class CountdownTimerUltimateAnalyzer extends PageAnalyzer {
   type = "countdown-timer-ultimate-countdown-timer";
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
   alterBlock(element: HTMLElement): void {}
 
   analyzePageContent(pageContent: HTMLElement): HTMLElement[] {
