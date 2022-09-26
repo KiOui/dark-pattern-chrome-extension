@@ -53,8 +53,10 @@ export default {
     }),
     typescript(),
     postcss(),
+    resolve({
+      extensions: [".mjs", ".js", ".json", ".node", ".ts"],
+    }),
     json(),
-    resolve(),
     commonjs(),
     emptyDir(),
   ],

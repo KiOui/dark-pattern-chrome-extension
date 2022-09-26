@@ -9,15 +9,10 @@
       "128": "assets/icon128.png"
     },
     "default_title": "Highlight",
-    "default_popup": "popup/index.html"
-  },
-  "icons": {
-    "16": "assets/icon16.png",
-    "48": "assets/icon48.png",
-    "128": "assets/icon128.png"
+    "default_popup": "popup.html"
   },
   "background": {
-    "service_worker": "background.ts"
+    "service_worker": "js/background.js"
   },
   "content_scripts": [
     {
@@ -26,13 +21,16 @@
         "http://*/*"
       ],
       "run_at": "document_start",
-      "js": ["content-scripts/main.ts"]
+      "js": ["js/content-script.js"]
     }
   ],
-  "options_page": "options/index.html",
+  "options_page": "options.html",
   "permissions": [
     "storage",
     "activeTab",
     "scripting"
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' ; object-src 'self'"
+  }
 }

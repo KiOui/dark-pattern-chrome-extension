@@ -10,6 +10,8 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "noImplicitAny": false,
+    "noImplicitThis": false,
+    "experimentalDecorators": true,
     "lib": ["esnext", "dom"],
     "types": [
       "@types/chrome",
