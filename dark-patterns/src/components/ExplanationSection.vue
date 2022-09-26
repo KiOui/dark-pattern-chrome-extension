@@ -1,7 +1,7 @@
 <template>
   <div class="explanation-section">
     <div class="header d-flex mb-2">
-      <h2 class="mb-0 me-auto">{{ explanation.title }}</h2>
+      <h2 class="mb-0 me-auto">{{ title }}</h2>
       <font-awesome-icon
         v-if="collapsed"
         icon="fa-solid fa-caret-down"
@@ -20,19 +20,19 @@
       v-bind:style="{ 'max-height': collapsed ? 0 : getExplanationHeight() }"
       ref="explanation"
     >
-      <p class="mb-1"><i>What it is: </i> {{ explanation.explanation }}</p>
-      <p class="mb-1"><i>Potential goal: </i>{{ explanation.goal }}</p>
+      <p class="mb-1"><i>What it is: </i> {{ explanation }}</p>
+      <p class="mb-1"><i>Potential goal: </i>{{ goal }}</p>
     </div>
   </div>
 </template>
 
 <script>
-import Explanation from "@/models/explanation.ts";
-
 export default {
   name: "ExplanationSection",
   props: {
-    explanation: Explanation,
+    title: String,
+    explanation: String,
+    goal: String,
   },
   data() {
     return {

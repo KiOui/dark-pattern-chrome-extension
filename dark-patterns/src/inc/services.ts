@@ -1,16 +1,3 @@
-async function getTabId(): Promise<number | null> {
-  return await chrome.tabs
-    .query({ active: true, currentWindow: true })
-    .then((tabs) => {
-      if (tabs.length > 0) {
-        if (tabs[0].id !== undefined) {
-          return tabs[0].id;
-        }
-      }
-      return null;
-    });
-}
-
 async function setBadge(
   text: string,
   backgroundColor: string,
@@ -42,4 +29,16 @@ async function setBadge(
     });
 }
 
-export { getTabId, setBadge };
+function extractPatternAmount(detectedPatterns: {
+  [key: string]: HTMLElement[];
+}): number {
+  return Object.keys(detectedPatterns)
+    .map((patternKey: string) => {
+      return detectedPatterns[patternKey].length;
+    })
+    .reduce((previousValue: number, currentValue: number) => {
+      return previousValue + currentValue;
+    }, 0);
+}
+
+export { setBadge, extractPatternAmount };

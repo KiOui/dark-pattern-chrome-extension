@@ -1,8 +1,15 @@
-import CountdownTimerAnalyzers from "@/page-analyzers/countdown-timers/collection";
-import PageAnalyzer from "@/page-analyzers/page-analyzer";
+import CountdownTimerAnalyzers from "@/models/page-analyzers/countdown-timers/collection";
+import PageAnalyzer from "@/models/page-analyzers/page-analyzer";
 
 const PAGE_REFRESH_TIMEOUT = 10000;
 let DARK_PATTERN_TIMER: number | null;
+let tabId: number | null = null;
+
+chrome.runtime.sendMessage({ type: "get_tab_id" }, (responseTabId) => {
+  if (responseTabId !== null) {
+    tabId = responseTabId;
+  }
+});
 
 window.onload = async () => {
   const analyzers: { [name: string]: PageAnalyzer } = setupAnalyzers();
@@ -57,21 +64,11 @@ function analysePageContent(
     }
   }
 
-  const amountOfPatternsDetected = Object.keys(detectedPatterns)
-    .map((patternKey: string) => {
-      return detectedPatterns[patternKey].length;
-    })
-    .reduce((previousValue: number, currentValue: number) => {
-      return previousValue + currentValue;
-    });
-
-  const badgeColor = amountOfPatternsDetected === 0 ? "green" : "red";
-
   chrome.runtime.sendMessage({
-    type: "set_badge",
+    type: "set_detected_patterns",
+    tabId: tabId,
     params: {
-      text: amountOfPatternsDetected.toString(),
-      color: badgeColor,
+      patterns: detectedPatterns,
     },
   });
 }

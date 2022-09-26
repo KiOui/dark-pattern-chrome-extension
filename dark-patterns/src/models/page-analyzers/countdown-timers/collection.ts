@@ -3,8 +3,8 @@ import PageAnalyzer from "../page-analyzer";
 import HurrytimerAnalyzer from "./hurrytimer.analyzer";
 import CountdownTimerUltimateAnalyzer from "./countdown-timer-ultimate.analyzer";
 import SalesCountdownTimerAnalyzer from "./sales-countdown-timer.analyzer";
-import EvergreenAnalyzer from "@/page-analyzers/countdown-timers/evergreen.analyzer";
-import POWRAnalyzer from "@/page-analyzers/countdown-timers/powr.analyzer";
+import EvergreenAnalyzer from "@/models/page-analyzers/countdown-timers/evergreen.analyzer";
+import POWRAnalyzer from "@/models/page-analyzers/countdown-timers/powr.analyzer";
 
 const CountdownTimerAnalyzers: PageAnalyzer[] = [
   new UltimateAddonsForElementorAnalyzer(),
