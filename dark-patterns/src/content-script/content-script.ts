@@ -1,5 +1,6 @@
-import CountdownTimerAnalyzers from "@/models/page-analyzers/countdown-timers/collection";
-import PageAnalyzer from "@/models/page-analyzers/page-analyzer";
+import FoundDarkPattern from "@/models/found-dark-pattern";
+import DarkPatternsCollection from "@/models/dark-patterns/dark-patterns-collection";
+import DarkPattern from "@/models/dark-patterns/dark-pattern";
 
 const PAGE_REFRESH_TIMEOUT = 10000;
 let DARK_PATTERN_TIMER: number | null;
@@ -12,63 +13,55 @@ chrome.runtime.sendMessage({ type: "get_tab_id" }, (responseTabId) => {
 });
 
 window.onload = async () => {
-  const analyzers: { [name: string]: PageAnalyzer } = setupAnalyzers();
-  runAndSetTimeout(analyzers, PAGE_REFRESH_TIMEOUT);
+  runAndSetTimeout(PAGE_REFRESH_TIMEOUT);
 };
 
-function runAndSetTimeout(
-  analyzers: { [key: string]: PageAnalyzer },
-  timeout: number
-) {
+function runAndSetTimeout(timeout: number) {
   if (DARK_PATTERN_TIMER !== null) {
     window.clearTimeout(DARK_PATTERN_TIMER);
   }
   try {
     const content = document.querySelector("body");
     if (content !== null) {
-      analysePageContent(content, analyzers);
+      const darkPatternsCollection = new DarkPatternsCollection();
+      analysePageContent(content, darkPatternsCollection.getDarkPatterns());
     }
   } finally {
     DARK_PATTERN_TIMER = window.setTimeout(
-      runAndSetTimeout.bind(null, analyzers, timeout),
+      runAndSetTimeout.bind(null, timeout),
       PAGE_REFRESH_TIMEOUT
     );
   }
 }
 
-function setupAnalyzers(): { [name: string]: PageAnalyzer } {
-  const analyzers: PageAnalyzer[] = CountdownTimerAnalyzers;
-  const analyzersDict: { [key: string]: PageAnalyzer } = {};
-  for (const analyzer of analyzers) {
-    analyzersDict[analyzer.getType()] = analyzer;
-  }
-  return analyzersDict;
-}
-
 function analysePageContent(
   pageContent: HTMLElement,
-  analyzers: { [name: string]: PageAnalyzer }
+  darkPatterns: DarkPattern[]
 ) {
-  const detectedPatterns: { [type: string]: HTMLElement[] } = {};
-  for (const analyzerType in analyzers) {
-    const analyzer = analyzers[analyzerType];
-    detectedPatterns[analyzerType] = analyzer.analyzePageContent(pageContent);
-  }
+  const detectedPatterns: FoundDarkPattern[] = [];
 
-  for (const detectedPatternType in detectedPatterns) {
-    const analyzerToUse = analyzers[detectedPatternType];
-    const listOfHTMLElementsDetected: HTMLElement[] =
-      detectedPatterns[detectedPatternType];
-    for (const detectedPattern of listOfHTMLElementsDetected) {
-      analyzerToUse.alterBlock(detectedPattern);
+  for (let i = 0; i < darkPatterns.length; i++) {
+    const darkPattern = darkPatterns[i];
+    const analyzers = darkPattern.getAnalyzers();
+    for (let n = 0; n < analyzers.length; n++) {
+      const analyzer = analyzers[n];
+      const foundElements = analyzer.analyzePageContent(pageContent);
+      for (let t = 0; t < foundElements.length; t++) {
+        const foundElement = foundElements[t];
+        detectedPatterns.push(
+          new FoundDarkPattern(
+            darkPattern.getType(),
+            analyzer.getType(),
+            foundElement
+          )
+        );
+      }
     }
   }
 
   chrome.runtime.sendMessage({
     type: "set_detected_patterns",
     tabId: tabId,
-    params: {
-      patterns: detectedPatterns,
-    },
+    patterns: detectedPatterns,
   });
 }

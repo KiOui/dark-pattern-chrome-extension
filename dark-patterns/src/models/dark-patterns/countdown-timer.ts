@@ -1,8 +1,8 @@
 import DarkPattern from "@/models/dark-patterns/dark-pattern";
-import CountdownTimerAnalyzers from "@/models/page-analyzers/countdown-timers/collection";
+import CountdownTimerAnalyzersCollection from "@/models/page-analyzers/countdown-timers/collection";
 
 class CountdownTimer extends DarkPattern {
-  analyzers = CountdownTimerAnalyzers;
+  analyzers = CountdownTimerAnalyzersCollection;
   description = "A countdown timer";
   goal = "To trick you";
   name = "Countdown Timer";

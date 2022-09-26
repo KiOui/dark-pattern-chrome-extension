@@ -10,6 +10,19 @@ abstract class DarkPattern {
   getType(): string {
     return this.type;
   }
+
+  getAnalyzers() {
+    return this.analyzers;
+  }
+
+  getPageAnalyzer(type: string): PageAnalyzer | null {
+    for (let i = 0; i < this.analyzers.length; i++) {
+      if (this.analyzers[i].getType() === type) {
+        return this.analyzers[i];
+      }
+    }
+    return null;
+  }
 }
 
 export default DarkPattern;

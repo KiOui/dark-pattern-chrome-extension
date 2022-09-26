@@ -14,22 +14,28 @@
       <div class="d-flex">
         <h2 class="mb-0 me-auto">Dark patterns</h2>
         <span
-          v-if="darkPatternsFoundAmount === 0"
+          v-if="darkPatternsFound.length === 0"
           class="found-dark-patterns badge bg-success"
-          >{{ darkPatternsFoundAmount }}</span
+          >{{ darkPatternsFound.length }}</span
         >
         <span v-else class="found-dark-patterns badge bg-danger">{{
-          darkPatternsFoundAmount
+          darkPatternsFound.length
         }}</span>
       </div>
       <hr />
-      <template v-for="key in Object.keys(darkPatternsFound)">
-        <ExplanationSection
-          v-bind:title="'Title'"
-          v-bind:explanation="'Explanation'"
-          v-bind:goal="'Goal'"
-        />
-      </template>
+      <div
+        :key="darkPatternFound"
+        v-for="darkPatternFound in Object.keys(foundPerDarkPattern)"
+      >
+        <template v-if="darkPattern(darkPatternFound) !== null">
+          <ExplanationSection
+            v-bind:title="darkPattern(darkPatternFound).name"
+            v-bind:goal="darkPattern(darkPatternFound).goal"
+            v-bind:explanation="darkPattern(darkPatternFound).description"
+            v-bind:amount="foundPerDarkPattern[darkPatternFound].length"
+          ></ExplanationSection>
+        </template>
+      </div>
     </div>
     <footer class="footer d-flex p-3 flex-row">
       <button class="btn btn-success w-100" @click="getTabId()">
@@ -42,8 +48,10 @@
 <script lang="ts">
 import ExplanationSection from "@/components/ExplanationSection.vue";
 import { Options, Vue } from "vue-class-component";
-import { extractPatternAmount } from "@/inc/services";
 import Tab from "@/models/tab";
+import DarkPatternsCollection from "@/models/dark-patterns/dark-patterns-collection";
+import FoundDarkPattern from "@/models/found-dark-pattern";
+import DarkPattern from "@/models/dark-patterns/dark-pattern";
 
 @Options({
   components: {
@@ -51,10 +59,24 @@ import Tab from "@/models/tab";
   },
 })
 export default class HighlightPopup extends Vue {
-  darkPatternsFound: { [key: string]: HTMLElement[] } = {};
+  darkPatternsFound: FoundDarkPattern[] = [];
+  darkPatternsCollection: DarkPatternsCollection = new DarkPatternsCollection();
 
-  get darkPatternsFoundAmount() {
-    return extractPatternAmount(this.darkPatternsFound);
+  darkPattern(key: string): null | DarkPattern {
+    return this.darkPatternsCollection.getDarkPattern(key);
+  }
+
+  get foundPerDarkPattern(): { [key: string]: FoundDarkPattern[] } {
+    const dict: { [key: string]: FoundDarkPattern[] } = {};
+    for (let i = 0; i < this.darkPatternsFound.length; i++) {
+      const darkPatternFound = this.darkPatternsFound[i];
+      if (darkPatternFound.darkPatternType in dict) {
+        dict[darkPatternFound.darkPatternType].push(darkPatternFound);
+      } else {
+        dict[darkPatternFound.darkPatternType] = [darkPatternFound];
+      }
+    }
+    return dict;
   }
 
   getTabId(): Promise<number | null> {
@@ -78,7 +100,8 @@ export default class HighlightPopup extends Vue {
     if (tabId !== null) {
       chrome.runtime.sendMessage(
         { type: "get_detected_patterns", tabId: tabId },
-        (result: { [key: string]: HTMLElement[] }) => {
+        (result: FoundDarkPattern[]) => {
+          console.log(result);
           this.darkPatternsFound = result;
         }
       );

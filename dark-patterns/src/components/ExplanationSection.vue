@@ -1,7 +1,9 @@
 <template>
   <div class="explanation-section">
     <div class="header d-flex mb-2">
-      <h2 class="mb-0 me-auto">{{ title }}</h2>
+      <h2 class="mb-0 me-auto">
+        {{ title }} <span class="bg-danger badge">{{ amount }}</span>
+      </h2>
       <font-awesome-icon
         v-if="collapsed"
         icon="fa-solid fa-caret-down"
@@ -33,6 +35,7 @@ export default {
     title: String,
     explanation: String,
     goal: String,
+    amount: Number,
   },
   data() {
     return {

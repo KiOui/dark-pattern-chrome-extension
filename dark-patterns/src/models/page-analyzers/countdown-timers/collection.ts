@@ -6,7 +6,7 @@ import SalesCountdownTimerAnalyzer from "./sales-countdown-timer.analyzer";
 import EvergreenAnalyzer from "@/models/page-analyzers/countdown-timers/evergreen.analyzer";
 import POWRAnalyzer from "@/models/page-analyzers/countdown-timers/powr.analyzer";
 
-const CountdownTimerAnalyzers: PageAnalyzer[] = [
+const CountdownTimerAnalyzersCollection: PageAnalyzer[] = [
   new UltimateAddonsForElementorAnalyzer(),
   new EvergreenAnalyzer(),
   new POWRAnalyzer(),
@@ -15,4 +15,4 @@ const CountdownTimerAnalyzers: PageAnalyzer[] = [
   new SalesCountdownTimerAnalyzer(),
 ];
 
-export default CountdownTimerAnalyzers;
+export default CountdownTimerAnalyzersCollection;

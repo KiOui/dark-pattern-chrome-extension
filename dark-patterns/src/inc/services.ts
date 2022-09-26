@@ -29,16 +29,4 @@ async function setBadge(
     });
 }
 
-function extractPatternAmount(detectedPatterns: {
-  [key: string]: HTMLElement[];
-}): number {
-  return Object.keys(detectedPatterns)
-    .map((patternKey: string) => {
-      return detectedPatterns[patternKey].length;
-    })
-    .reduce((previousValue: number, currentValue: number) => {
-      return previousValue + currentValue;
-    }, 0);
-}
-
-export { setBadge, extractPatternAmount };
+export { setBadge };

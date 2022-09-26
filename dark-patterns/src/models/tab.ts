@@ -1,6 +1,8 @@
+import FoundDarkPattern from "@/models/found-dark-pattern";
+
 export default class Tab {
   tabId: number;
-  detectedPatterns: { [key: string]: HTMLElement[] } | null = null;
+  detectedPatterns: FoundDarkPattern[] = [];
 
   constructor(tabId: number) {
     this.tabId = tabId;
@@ -10,27 +12,20 @@ export default class Tab {
     return this.tabId;
   }
 
-  setDetectedPatterns(detectedPatterns: { [key: string]: HTMLElement[] }) {
+  setDetectedPatterns(detectedPatterns: FoundDarkPattern[]) {
     this.detectedPatterns = detectedPatterns;
   }
 
-  getDetectedPatterns(): { [key: string]: HTMLElement[] } {
-    if (this.detectedPatterns === null) {
-      return {};
-    } else {
-      return this.detectedPatterns;
-    }
+  getDetectedPatterns(): FoundDarkPattern[] {
+    return this.detectedPatterns;
   }
 
   static constructFromDict(dict: {
     tabId: number;
-    detectedPatterns: { [key: string]: HTMLElement[] } | null | undefined;
+    detectedPatterns: FoundDarkPattern[];
   }) {
-    console.log(dict);
     const tab = new Tab(dict.tabId);
-    if (dict.detectedPatterns !== null && dict.detectedPatterns !== undefined) {
-      tab.setDetectedPatterns(dict.detectedPatterns);
-    }
+    tab.setDetectedPatterns(dict.detectedPatterns);
     return tab;
   }
 }

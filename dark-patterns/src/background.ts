@@ -1,39 +1,37 @@
-import { extractPatternAmount, setBadge } from "@/inc/services";
+import { setBadge } from "@/inc/services";
 import MessageSender = chrome.runtime.MessageSender;
 import TabInformation from "@/models/tab-information";
+import FoundDarkPattern from "@/models/found-dark-pattern";
 
 const tabInformation = new TabInformation();
 
 function getDetectedPatternsHandler(
   message: { tabId: number },
   sender: MessageSender,
-  sendResponse: (response: { [type: string]: HTMLElement[] }) => void
+  sendResponse: (response: FoundDarkPattern[]) => void
 ) {
   const tab = tabInformation.getTab(message.tabId);
   if (tab !== null) {
     sendResponse(tab.getDetectedPatterns());
   } else {
-    sendResponse({});
+    sendResponse([]);
   }
 }
 
 function setDetectedPatternsHandler(
-  message: { params: { patterns: { [type: string]: HTMLElement[] } } },
+  message: { patterns: FoundDarkPattern[] },
   sender: MessageSender,
   sendResponse: (response: boolean) => void
 ) {
   if (sender.tab !== undefined && sender.tab.id !== undefined) {
-    tabInformation
-      .addTab(sender.tab.id)
-      .setDetectedPatterns(message.params.patterns);
+    tabInformation.addTab(sender.tab.id).setDetectedPatterns(message.patterns);
     chrome.runtime.sendMessage({
       type: "tab_information_updated",
       tab: tabInformation.getTab(sender.tab.id),
     });
   }
 
-  const detectedPatterns = message.params.patterns;
-  const amountOfPatternsDetected = extractPatternAmount(detectedPatterns);
+  const amountOfPatternsDetected = message.patterns.length;
 
   const badgeColor = amountOfPatternsDetected === 0 ? "green" : "red";
 
