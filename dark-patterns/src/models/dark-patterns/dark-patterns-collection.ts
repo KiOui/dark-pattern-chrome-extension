@@ -1,9 +1,10 @@
 import CountdownTimer from "@/models/dark-patterns/countdown-timer";
 import DarkPattern from "@/models/dark-patterns/dark-pattern";
 import PageAnalyzer from "@/models/page-analyzers/page-analyzer";
+import LowStock from "@/models/dark-patterns/low-stock";
 
 class DarkPatternsCollection {
-  darkPatterns: DarkPattern[] = [new CountdownTimer()];
+  darkPatterns: DarkPattern[] = [new CountdownTimer(), new LowStock()];
 
   getDarkPatterns() {
     return this.darkPatterns;

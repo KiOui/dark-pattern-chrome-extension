@@ -36,9 +36,12 @@
           ></ExplanationSection>
         </template>
       </div>
+      <div v-if="darkPatternsFound.length === 0">
+        No dark patterns found on this webpage.
+      </div>
     </div>
     <footer class="footer d-flex p-3 flex-row justify-content-center">
-      <div class="form-check form-switch">
+      <div class="form-check form-switch" v-if="darkPatternsFound.length > 0">
         <input
           class="form-check-input"
           type="checkbox"
@@ -46,6 +49,18 @@
           id="showBadgeNumberInput"
           v-model="highlightDarkPatterns"
           @click="toggleHighlightDarkPatterns(!highlightDarkPatterns)"
+        />
+        <label class="form-check-label" for="showBadgeNumberInput"
+          >Highlight dark patterns</label
+        >
+      </div>
+      <div class="form-check form-switch" v-else>
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="showBadgeNumberInput"
+          disabled
         />
         <label class="form-check-label" for="showBadgeNumberInput"
           >Highlight dark patterns</label

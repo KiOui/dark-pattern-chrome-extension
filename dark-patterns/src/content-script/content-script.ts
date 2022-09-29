@@ -83,6 +83,7 @@ function analysePageContent(
 function addBlurDiv(): HTMLElement {
   const blurDiv = document.createElement("div");
   blurDiv.id = "highlight-blur-page";
+  blurDiv.classList.add("highlight-blur-page");
   document.body.appendChild(blurDiv);
   return blurDiv;
 }
@@ -111,7 +112,7 @@ function addHighlightCSS() {
   if (blur === null) {
     blur = addBlurDiv();
   }
-  blur.classList.add("highlight-blur-page");
+  blur.classList.add("highlight-blur-page-enabled");
   document.body.classList.add(PageAnalyzer.bodyDimmedClass);
   const darkPatternsDetected = document.getElementsByClassName(
     PageAnalyzer.darkPatternClass
@@ -126,7 +127,7 @@ function addHighlightCSS() {
 function removeHighlightCss() {
   const blur = document.getElementById("highlight-blur-page");
   if (blur !== null) {
-    blur.classList.remove("highlight-blur-page");
+    blur.classList.remove("highlight-blur-page-enabled");
   }
   document.body.classList.remove(PageAnalyzer.bodyDimmedClass);
   const darkPatternsDetected = document.getElementsByClassName(

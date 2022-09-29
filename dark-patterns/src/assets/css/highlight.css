@@ -1,21 +1,26 @@
+.highlight-dark-pattern {
+    transition: padding 0.2s linear, background-color 0.2s linear;
+}
+
 .highlight-body-dark-patterns-highlighted * {
     z-index: initial !important;
 }
 
 .highlight-dark-pattern-highlighted {
-    padding: 40px !important;
+    padding: 10px !important;
     border-radius: 5px !important;
     background-color: rgba(220, 53, 67, 0.8);
     z-index: 9999 !important;
     position: relative !important;
 }
 
-.highlight-body-dark-patterns {
-    animation: 1s all ease-out;
+.highlight-blur-page {
+    transition: backdrop-filter 0.2s linear;
+    backdrop-filter: blur(10px) opacity(0);
 }
 
-.highlight-blur-page {
-    backdrop-filter: blur(10px);
+.highlight-blur-page-enabled {
+    backdrop-filter: blur(10px) opacity(1);
     position: fixed;
     z-index: 9998;
     height: 100vh;

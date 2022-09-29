@@ -2,16 +2,20 @@
   <div class="container mt-5" style="max-width: 800px">
     <h1>Highlight Settings</h1>
     <form v-if="loaded">
-      <div class="form-check form-switch">
+      <div
+        v-for="darkPattern in darkPatterns.getDarkPatterns()"
+        :key="darkPattern"
+        class="form-check form-switch"
+      >
         <label class="form-check-label" for="showBadgeNumberInput"
-          >Highlight dark patterns</label
+          >Analyze {{ darkPattern.name }}</label
         >
         <input
           class="form-check-input"
           type="checkbox"
           role="switch"
           id="showBadgeNumberInput"
-          v-model="formData['showBadgeNumber']"
+          v-model="formData[`analyze_${darkPattern.name}`]"
         />
       </div>
       <input
@@ -26,14 +30,14 @@
 
 <script lang="ts">
 import { Vue, Options } from "vue-class-component";
+import DarkPatternsCollection from "@/models/dark-patterns/dark-patterns-collection";
 
 @Options({})
 export default class HighlightSettings extends Vue {
   loaded = false;
+  darkPatterns = new DarkPatternsCollection();
 
-  formData: { [key: string]: boolean } = {
-    showBadgeNumber: true,
-  };
+  formData: { [key: string]: boolean } = {};
 
   saveOptions() {
     const formData = this.formData;
@@ -47,6 +51,10 @@ export default class HighlightSettings extends Vue {
   }
 
   loadOptions() {
+    for (let i = 0; i < this.darkPatterns.getDarkPatterns().length; i++) {
+      this.formData[`analyze_${this.darkPatterns.getDarkPatterns()[i].type}`] =
+        true;
+    }
     chrome.storage.sync.get(["highlightSettings"]).then((result) => {
       this.formData = Object.assign(
         {},

@@ -67,4 +67,8 @@ export default {
 .caret-icon {
   cursor: pointer;
 }
+
+.explanation-section {
+  margin-bottom: 5px;
+}
 </style>
