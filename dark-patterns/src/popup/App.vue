@@ -37,10 +37,20 @@
         </template>
       </div>
     </div>
-    <footer class="footer d-flex p-3 flex-row">
-      <button class="btn btn-success w-100" @click="getTabId()">
-        Show patterns
-      </button>
+    <footer class="footer d-flex p-3 flex-row justify-content-center">
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="showBadgeNumberInput"
+          v-model="highlightDarkPatterns"
+          @click="toggleHighlightDarkPatterns(!highlightDarkPatterns)"
+        />
+        <label class="form-check-label" for="showBadgeNumberInput"
+          >Highlight dark patterns</label
+        >
+      </div>
     </footer>
   </div>
 </template>
@@ -61,6 +71,7 @@ import DarkPattern from "@/models/dark-patterns/dark-pattern";
 export default class HighlightPopup extends Vue {
   darkPatternsFound: FoundDarkPattern[] = [];
   darkPatternsCollection: DarkPatternsCollection = new DarkPatternsCollection();
+  highlightDarkPatterns = false;
 
   darkPattern(key: string): null | DarkPattern {
     return this.darkPatternsCollection.getDarkPattern(key);
@@ -110,6 +121,41 @@ export default class HighlightPopup extends Vue {
 
   onTabInformationUpdate(tab: Tab) {
     this.darkPatternsFound = tab.getDetectedPatterns();
+  }
+
+  addHighlightDarkPatterns() {
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.id !== undefined) {
+          chrome.tabs.sendMessage(tab.id, {
+            type: "add_highlight_dark_patterns",
+          });
+        }
+      });
+    });
+  }
+
+  removeHighlightDarkPatterns() {
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.id !== undefined) {
+          chrome.tabs.sendMessage(tab.id, {
+            type: "remove_highlight_dark_patterns",
+          });
+        }
+      });
+    });
+  }
+
+  toggleHighlightDarkPatterns(highlight: boolean | null) {
+    if (highlight === null) {
+      highlight = this.highlightDarkPatterns;
+    }
+    if (highlight) {
+      this.addHighlightDarkPatterns();
+    } else {
+      this.removeHighlightDarkPatterns();
+    }
   }
 
   mounted() {

@@ -17,6 +17,9 @@
             "js": [
                 "/contentScript.js"
             ],
+            "css": [
+                "/assets/css/highlight.css"
+            ],
             "run_at": "document_start"
         }
     ],

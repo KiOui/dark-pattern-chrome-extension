@@ -3,6 +3,9 @@
     <h1>Highlight Settings</h1>
     <form v-if="loaded">
       <div class="form-check form-switch">
+        <label class="form-check-label" for="showBadgeNumberInput"
+          >Highlight dark patterns</label
+        >
         <input
           class="form-check-input"
           type="checkbox"
@@ -10,9 +13,6 @@
           id="showBadgeNumberInput"
           v-model="formData['showBadgeNumber']"
         />
-        <label class="form-check-label" for="showBadgeNumberInput"
-          >Show badge number</label
-        >
       </div>
       <input
         type="submit"

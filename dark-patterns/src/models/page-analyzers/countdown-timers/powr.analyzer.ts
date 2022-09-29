@@ -6,9 +6,6 @@ https://powr.io/
 class POWRAnalyzer extends PageAnalyzer {
   type = "powr-countdown-timer";
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
-  alterBlock(element: HTMLElement): void {}
-
   analyzePageContent(pageContent: HTMLElement): HTMLElement[] {
     const foundElements =
       pageContent.querySelectorAll<HTMLElement>(".countdownTimer");
