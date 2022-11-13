@@ -62,6 +62,22 @@ function getTabIdHandler(
   sendResponse(null);
 }
 
+function sendIFrameContent(
+  message: { content: string; referrer: string },
+  sender: MessageSender,
+  sendResponse: (response: boolean) => void
+) {
+  if (sender.tab !== undefined && sender.tab.id !== undefined) {
+    chrome.tabs.sendMessage(sender.tab.id, {
+      type: "add_iframe_content",
+      referrer: message.referrer,
+      content: message.content,
+    });
+    sendResponse(true);
+  }
+  sendResponse(false);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type !== undefined) {
     if (message.type === "set_detected_patterns") {
@@ -70,6 +86,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       getTabIdHandler(sender, sendResponse);
     } else if (message.type === "get_detected_patterns") {
       getDetectedPatternsHandler(message, sender, sendResponse);
+    } else if (message.type === "send_iframe_content") {
+      sendIFrameContent(message, sender, sendResponse);
     }
   }
   sendResponse(false);

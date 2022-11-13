@@ -18,6 +18,9 @@ const pages = {
   contentScript: {
     entry: "./src/content-script/content-script.ts",
   },
+  contentScriptIframe: {
+    entry: "./src/content-script/content-script-iframe.ts",
+  },
 };
 
 const isDevMode = process.env.NODE_ENV === "development";

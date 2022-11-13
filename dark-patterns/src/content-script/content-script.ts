@@ -2,10 +2,11 @@ import FoundDarkPattern from "@/models/found-dark-pattern";
 import DarkPatternsCollection from "@/models/dark-patterns/dark-patterns-collection";
 import DarkPattern from "@/models/dark-patterns/dark-pattern";
 import PageAnalyzer from "@/models/page-analyzers/page-analyzer";
+import iFrameContent from "@/inc/iframes";
 
-const PAGE_REFRESH_TIMEOUT = 10000;
-let DARK_PATTERN_TIMER: number | null;
+const MINIMUM_TIME_BETWEEN_RUNS = 5000;
 let tabId: number | null = null;
+let lastRun: number | null = null;
 
 chrome.runtime.sendMessage({ type: "get_tab_id" }, (responseTabId) => {
   if (responseTabId !== null) {
@@ -13,44 +14,39 @@ chrome.runtime.sendMessage({ type: "get_tab_id" }, (responseTabId) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message: { type: string }) => {
+chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "add_highlight_dark_patterns") {
     addHighlightCSS();
   } else if (message.type == "remove_highlight_dark_patterns") {
     removeHighlightCss();
+  } else if (message.type == "add_iframe_content") {
+    iFrameContent.addIFrameContent(message.referrer, message.content);
   }
 });
 
-window.onload = async () => {
-  runAndSetTimeout(PAGE_REFRESH_TIMEOUT);
-};
+const doRun = () => {
+  if (lastRun !== null && Date.now() <= lastRun + MINIMUM_TIME_BETWEEN_RUNS) {
+    return;
+  }
+  console.log("Doing run...");
 
-function runAndSetTimeout(timeout: number) {
-  if (DARK_PATTERN_TIMER !== null) {
-    window.clearTimeout(DARK_PATTERN_TIMER);
-  }
-  try {
-    const content = document.querySelector("body");
-    if (content !== null) {
-      const darkPatternsCollection = new DarkPatternsCollection();
-      const detectedPatterns = analysePageContent(
-        content,
-        darkPatternsCollection.getDarkPatterns()
-      );
-      alterPageContent(detectedPatterns, darkPatternsCollection);
-      chrome.runtime.sendMessage({
-        type: "set_detected_patterns",
-        tabId: tabId,
-        patterns: detectedPatterns,
-      });
-    }
-  } finally {
-    DARK_PATTERN_TIMER = window.setTimeout(
-      runAndSetTimeout.bind(null, timeout),
-      PAGE_REFRESH_TIMEOUT
+  lastRun = Date.now();
+  const content = document.querySelector("body");
+  if (content !== null) {
+    const darkPatternsCollection = new DarkPatternsCollection();
+    const detectedPatterns = analysePageContent(
+      content,
+      darkPatternsCollection.getDarkPatterns()
     );
+    alterPageContent(detectedPatterns, darkPatternsCollection);
+    chrome.runtime.sendMessage({
+      type: "set_detected_patterns",
+      tabId: tabId,
+      patterns: detectedPatterns,
+    });
   }
-}
+  window.setTimeout(doRun, 5000);
+};
 
 function analysePageContent(
   pageContent: HTMLElement,
@@ -139,3 +135,10 @@ function removeHighlightCss() {
     );
   }
 }
+
+window.addEventListener("load", async () => {
+  const config = { attributes: false, childList: true, subtree: true };
+  const observer = new MutationObserver(doRun);
+  observer.observe(document.body, config);
+  window.setTimeout(doRun, 5000);
+});
