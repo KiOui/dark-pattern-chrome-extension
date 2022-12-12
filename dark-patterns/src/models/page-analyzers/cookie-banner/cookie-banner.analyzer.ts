@@ -2,24 +2,13 @@ import PageAnalyzer from "../page-analyzer";
 import getStopWords from "@/inc/stopwords";
 import stemmer from "@/inc/porter";
 import iFrameContent from "@/inc/iframes";
-
-function getParents(element: HTMLElement): HTMLElement[] {
-  const parents: HTMLElement[] = [];
-  for (
-    let elementToCheck = element.parentElement;
-    elementToCheck !== null;
-    elementToCheck = elementToCheck.parentElement
-  ) {
-    parents.push(elementToCheck);
-  }
-  return parents;
-}
-
-function getParentsWithSelf(element: HTMLElement): HTMLElement[] {
-  const parents = getParents(element);
-  parents.unshift(element);
-  return parents;
-}
+import { filterText, getParentsWithSelf, isDisplayed } from "@/inc/services";
+import contrastCheck from "@/inc/contrast-check";
+import {
+  getAcceptButtonScore,
+  getRejectButtonScore,
+  getManageButtonScore,
+} from "@/inc/button-frequencies";
 
 abstract class Filter {
   abstract filter(toFilter: PossibleCookiePopup[]): PossibleCookiePopup[];
@@ -37,21 +26,7 @@ class OnlyDisplayedFilter extends Filter {
   filter(toFilter: PossibleCookiePopup[]): PossibleCookiePopup[] {
     return toFilter.filter((popup) => {
       // Ensure that an element is being displayed.
-      const parents = getParentsWithSelf(popup.getPossibleCookiePopup());
-      for (
-        let currentParentIndex = 0;
-        currentParentIndex < parents.length;
-        currentParentIndex++
-      ) {
-        if (
-          window
-            .getComputedStyle(parents[currentParentIndex])
-            .getPropertyValue("display") === "none"
-        ) {
-          return false;
-        }
-      }
-      return true;
+      return isDisplayed(popup.getPossibleCookiePopup());
     });
   }
 }
@@ -64,7 +39,6 @@ class WordsFoundFilter extends Filter {
       if (popup.getTextContent().length === 0) {
         return false;
       }
-
       const percentageWords =
         popup.getCommonCookiePopupWords().length /
         popup.getFilteredTextContent().length;
@@ -78,7 +52,6 @@ class MinimumAmountOfWordsFilter extends Filter {
 
   filter(toFilter: PossibleCookiePopup[]): PossibleCookiePopup[] {
     return toFilter.filter((popup) => {
-      console.log(popup.getSplitTextContent());
       return (
         popup.getSplitTextContent().length >
         MinimumAmountOfWordsFilter.minimumWordsNeeded
@@ -138,7 +111,8 @@ class PossibleCookiePopup {
     }
     const iFrames = cookiePopupElement.querySelectorAll("iframe");
     iFrames.forEach((iframe) => {
-      console.log(iFrameContent.getIFrameContent(iframe.src));
+      const content = iFrameContent.getIFrameContent(iframe.src);
+      innerText = innerText + " " + content;
     });
     return innerText;
   }
@@ -166,10 +140,7 @@ class PossibleCookiePopup {
   }
 
   getSplitTextContent(): string[] {
-    // Replace weird characters.
-    const filteredText = this.textContent.replaceAll(/[^\w\s]/gm, "");
-    // Split all words.
-    return filteredText.split(/\s+/);
+    return filterText(this.textContent);
   }
 
   getFilteredTextContent(): string[] {
@@ -207,6 +178,61 @@ class PossibleCookiePopup {
   }
 }
 
+class PossibleConsentButton {
+  button: HTMLElement;
+  acceptScore: number;
+  rejectScore: number;
+  manageScore: number;
+
+  constructor(
+    button: HTMLElement,
+    acceptScore: number,
+    rejectScore: number,
+    manageScore: number
+  ) {
+    this.button = button;
+    this.acceptScore = acceptScore;
+    this.rejectScore = rejectScore;
+    this.manageScore = manageScore;
+  }
+
+  static createPossibleConsentButton(
+    element: HTMLElement
+  ): PossibleConsentButton {
+    const filteredText = filterText(element.innerText)
+      .map((word) => {
+        // Map all words to lower case.
+        return word.toLowerCase();
+      })
+      .map((word) => {
+        // Stem words.
+        return stemmer(word);
+      });
+    return new PossibleConsentButton(
+      element,
+      getAcceptButtonScore(filteredText),
+      getRejectButtonScore(filteredText),
+      getManageButtonScore(filteredText)
+    );
+  }
+
+  getButton() {
+    return this.button;
+  }
+
+  getAcceptScore() {
+    return this.acceptScore;
+  }
+
+  getRejectScore() {
+    return this.rejectScore;
+  }
+
+  getManageScore() {
+    return this.manageScore;
+  }
+}
+
 class CookieBannerAnalyzer extends PageAnalyzer {
   type = "cookie-banner";
 
@@ -216,6 +242,174 @@ class CookieBannerAnalyzer extends PageAnalyzer {
     new MinimumAmountOfWordsFilter(),
     new WordsFoundFilter(),
   ];
+
+  getLinkParent(element: HTMLElement) {
+    return element.parentElement;
+  }
+
+  alterBlock(element: HTMLElement) {
+    super.alterBlock(element);
+    console.log("Start alter block");
+    const possibleButtons = Array.from(
+      element.querySelectorAll<HTMLElement>("button")
+    ).concat(Array.from(element.querySelectorAll<HTMLElement>("a")));
+    const filteredButtons = possibleButtons
+      .filter((element) => {
+        return isDisplayed(element);
+      })
+      .filter((element) => {
+        return element.innerText !== "" && element.innerText != null;
+      })
+      .filter((element) => {
+        const parent = this.getLinkParent(element);
+        if (parent === null) {
+          return true;
+        }
+        const textNodes = Array.from(parent.childNodes).filter((node) => {
+          return node.nodeType === Node.TEXT_NODE;
+        });
+        const textInParent = textNodes
+          .map((node) => {
+            return node.textContent;
+          })
+          .reduce((previousValue, currentValue) => {
+            if (previousValue === null) {
+              previousValue = "";
+            }
+            if (currentValue === null) {
+              currentValue = "";
+            }
+            return previousValue + " " + currentValue;
+          }, "");
+        return textInParent !== null && filterText(textInParent).length === 0;
+      });
+    const buttonScores: PossibleConsentButton[] = [];
+
+    filteredButtons.forEach((element) => {
+      buttonScores.push(
+        PossibleConsentButton.createPossibleConsentButton(element)
+      );
+    });
+
+    console.log([...buttonScores]);
+
+    const acceptButton = buttonScores.reduce(
+      (
+        previousValue: PossibleConsentButton | null,
+        currentValue: PossibleConsentButton | null
+      ) => {
+        let isPossibleAcceptPrevious = 0;
+        let isPossibleAcceptCurrent = 0;
+        if (previousValue !== null) {
+          isPossibleAcceptPrevious = previousValue.getAcceptScore();
+        }
+        if (currentValue !== null) {
+          isPossibleAcceptCurrent = currentValue.getAcceptScore();
+        }
+
+        if (isPossibleAcceptPrevious === 0 && isPossibleAcceptCurrent === 0) {
+          return null;
+        } else if (isPossibleAcceptPrevious > isPossibleAcceptCurrent) {
+          return previousValue;
+        } else {
+          return currentValue;
+        }
+      },
+      null
+    );
+
+    // Remove accept button from list.
+    if (acceptButton !== null) {
+      const indexAccept = buttonScores.indexOf(acceptButton);
+      buttonScores.splice(indexAccept, 1);
+    }
+
+    const manageButton = buttonScores.reduce(
+      (
+        previousValue: PossibleConsentButton | null,
+        currentValue: PossibleConsentButton | null
+      ) => {
+        let isPossibleManagePrevious = 0;
+        let isPossibleManageCurrent = 0;
+        if (previousValue !== null) {
+          isPossibleManagePrevious = previousValue.getManageScore();
+        }
+        if (currentValue !== null) {
+          isPossibleManageCurrent = currentValue.getManageScore();
+        }
+
+        if (isPossibleManagePrevious === 0 && isPossibleManageCurrent === 0) {
+          return null;
+        } else if (isPossibleManagePrevious > isPossibleManageCurrent) {
+          return previousValue;
+        } else {
+          return currentValue;
+        }
+      },
+      null
+    );
+
+    // Remove accept button from list.
+    if (manageButton !== null) {
+      const indexManage = buttonScores.indexOf(manageButton);
+      buttonScores.splice(indexManage, 1);
+    }
+
+    const rejectButton = buttonScores.reduce(
+      (
+        previousValue: PossibleConsentButton | null,
+        currentValue: PossibleConsentButton | null
+      ) => {
+        let isPossibleRejectPrevious = 0;
+        let isPossibleRejectCurrent = 0;
+        if (previousValue !== null) {
+          isPossibleRejectPrevious = previousValue.getRejectScore();
+        }
+        if (currentValue !== null) {
+          isPossibleRejectCurrent = currentValue.getRejectScore();
+        }
+
+        if (isPossibleRejectPrevious === 0 && isPossibleRejectCurrent === 0) {
+          return null;
+        } else if (isPossibleRejectPrevious > isPossibleRejectCurrent) {
+          return previousValue;
+        } else {
+          return currentValue;
+        }
+      },
+      null
+    );
+
+    if (acceptButton !== null) {
+      acceptButton.getButton().style.border = "5px solid green";
+    }
+    console.log(acceptButton);
+
+    if (rejectButton !== null) {
+      rejectButton.getButton().style.border = "5px solid red";
+    }
+    console.log(rejectButton);
+
+    if (manageButton !== null) {
+      manageButton.getButton().style.border = "5px solid blue";
+    }
+    console.log(manageButton);
+
+    /*
+    const elements = Array.from(
+      element.querySelectorAll<HTMLElement>("button")
+    ).concat(Array.from(element.querySelectorAll<HTMLElement>("a")));
+    elements.forEach((element) => {
+      const evaluation = contrastCheck(element);
+      console.log(evaluation);
+      if (evaluation !== null && !evaluation.getIsValidAA()) {
+        element.style.border = "5px solid red";
+        console.log(evaluation.getIsValidAA());
+        console.log(evaluation.getContrast());
+        console.log(element);
+      }
+    });*/
+  }
 
   getPossibleCookiePopups(pageContent: HTMLElement): PossibleCookiePopup[] {
     return Array.from(pageContent.querySelectorAll<HTMLElement>("body *"))
@@ -237,8 +431,6 @@ class CookieBannerAnalyzer extends PageAnalyzer {
     ) {
       possibleCookiePopups =
         this.filters[filterIndex].filter(possibleCookiePopups);
-      console.log(this.filters[filterIndex]);
-      console.log(possibleCookiePopups);
     }
 
     if (possibleCookiePopups.length > 0) {
@@ -259,10 +451,8 @@ class CookieBannerAnalyzer extends PageAnalyzer {
 
         return percentagePopup2 - percentagePopup1;
       });
-      console.log(possibleCookiePopups[0].getPossibleCookiePopup());
       return [possibleCookiePopups[0].getPossibleCookiePopup()];
     } else {
-      console.log("Nothing found...");
       return [];
     }
   }
