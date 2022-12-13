@@ -1,15 +1,9 @@
-import CountdownTimer from "@/models/dark-patterns/countdown-timer";
 import DarkPattern from "@/models/dark-patterns/dark-pattern";
 import PageAnalyzer from "@/models/page-analyzers/page-analyzer";
-import LowStock from "@/models/dark-patterns/low-stock";
 import CookieBanner from "@/models/dark-patterns/cookie-banner";
 
 class DarkPatternsCollection {
-  darkPatterns: DarkPattern[] = [
-    /* new CountdownTimer(),
-    new LowStock(), */
-    new CookieBanner(),
-  ];
+  darkPatterns: DarkPattern[] = [new CookieBanner()];
 
   getDarkPatterns() {
     return this.darkPatterns;

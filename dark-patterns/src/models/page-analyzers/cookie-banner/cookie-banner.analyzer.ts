@@ -2,8 +2,14 @@ import PageAnalyzer from "../page-analyzer";
 import getStopWords from "@/inc/stopwords";
 import stemmer from "@/inc/porter";
 import iFrameContent from "@/inc/iframes";
-import { filterText, getParentsWithSelf, isDisplayed } from "@/inc/services";
-import contrastCheck from "@/inc/contrast-check";
+import {
+  filterText,
+  getParentsWithSelf,
+  isDisplayed,
+  hasStylingDifferences,
+  duplicateStyles,
+  hasDarkPatternClass,
+} from "@/inc/services";
 import {
   getAcceptButtonScore,
   getRejectButtonScore,
@@ -179,6 +185,7 @@ class PossibleCookiePopup {
 }
 
 class PossibleConsentButton {
+  static styleProperties = ["background-color", "font-size", "color"];
   button: HTMLElement;
   acceptScore: number;
   rejectScore: number;
@@ -247,9 +254,7 @@ class CookieBannerAnalyzer extends PageAnalyzer {
     return element.parentElement;
   }
 
-  alterBlock(element: HTMLElement) {
-    super.alterBlock(element);
-    console.log("Start alter block");
+  getPossibleConsentButtons(element: HTMLElement): PossibleConsentButton[] {
     const possibleButtons = Array.from(
       element.querySelectorAll<HTMLElement>("button")
     ).concat(Array.from(element.querySelectorAll<HTMLElement>("a")));
@@ -291,9 +296,11 @@ class CookieBannerAnalyzer extends PageAnalyzer {
       );
     });
 
-    console.log([...buttonScores]);
+    return buttonScores;
+  }
 
-    const acceptButton = buttonScores.reduce(
+  getConsentButtonsPerType(possibleConsentButtons: PossibleConsentButton[]) {
+    const acceptButton = possibleConsentButtons.reduce(
       (
         previousValue: PossibleConsentButton | null,
         currentValue: PossibleConsentButton | null
@@ -320,11 +327,11 @@ class CookieBannerAnalyzer extends PageAnalyzer {
 
     // Remove accept button from list.
     if (acceptButton !== null) {
-      const indexAccept = buttonScores.indexOf(acceptButton);
-      buttonScores.splice(indexAccept, 1);
+      const indexAccept = possibleConsentButtons.indexOf(acceptButton);
+      possibleConsentButtons.splice(indexAccept, 1);
     }
 
-    const manageButton = buttonScores.reduce(
+    const manageButton = possibleConsentButtons.reduce(
       (
         previousValue: PossibleConsentButton | null,
         currentValue: PossibleConsentButton | null
@@ -351,11 +358,11 @@ class CookieBannerAnalyzer extends PageAnalyzer {
 
     // Remove accept button from list.
     if (manageButton !== null) {
-      const indexManage = buttonScores.indexOf(manageButton);
-      buttonScores.splice(indexManage, 1);
+      const indexManage = possibleConsentButtons.indexOf(manageButton);
+      possibleConsentButtons.splice(indexManage, 1);
     }
 
-    const rejectButton = buttonScores.reduce(
+    const rejectButton = possibleConsentButtons.reduce(
       (
         previousValue: PossibleConsentButton | null,
         currentValue: PossibleConsentButton | null
@@ -380,35 +387,53 @@ class CookieBannerAnalyzer extends PageAnalyzer {
       null
     );
 
-    if (acceptButton !== null) {
-      acceptButton.getButton().style.border = "5px solid green";
-    }
-    console.log(acceptButton);
+    return [acceptButton, rejectButton, manageButton];
+  }
 
-    if (rejectButton !== null) {
-      rejectButton.getButton().style.border = "5px solid red";
-    }
-    console.log(rejectButton);
-
-    if (manageButton !== null) {
-      manageButton.getButton().style.border = "5px solid blue";
-    }
-    console.log(manageButton);
-
-    /*
-    const elements = Array.from(
-      element.querySelectorAll<HTMLElement>("button")
-    ).concat(Array.from(element.querySelectorAll<HTMLElement>("a")));
-    elements.forEach((element) => {
-      const evaluation = contrastCheck(element);
-      console.log(evaluation);
-      if (evaluation !== null && !evaluation.getIsValidAA()) {
-        element.style.border = "5px solid red";
-        console.log(evaluation.getIsValidAA());
-        console.log(evaluation.getContrast());
-        console.log(element);
+  alterBlock(element: HTMLElement) {
+    super.alterBlock(element);
+    console.log("Start alter block");
+    const buttonScores = this.getPossibleConsentButtons(element);
+    const detectedButtons = this.getConsentButtonsPerType(buttonScores);
+    const detectedAcceptButton = detectedButtons[0];
+    const detectedRejectButton = detectedButtons[1];
+    const detectedManageButton = detectedButtons[2];
+    console.log(detectedAcceptButton?.getButton());
+    console.log(detectedRejectButton?.getButton());
+    console.log(detectedManageButton?.getButton());
+    if (detectedAcceptButton !== null && detectedRejectButton !== null) {
+      if (
+        hasStylingDifferences(
+          detectedAcceptButton.getButton(),
+          detectedRejectButton.getButton(),
+          PossibleConsentButton.styleProperties
+        ) &&
+        !hasDarkPatternClass(detectedRejectButton.getButton())
+      ) {
+        duplicateStyles(
+          detectedAcceptButton.getButton(),
+          detectedRejectButton.getButton(),
+          PossibleConsentButton.styleProperties
+        );
       }
-    });*/
+    }
+
+    if (detectedAcceptButton !== null && detectedManageButton !== null) {
+      if (
+        hasStylingDifferences(
+          detectedAcceptButton.getButton(),
+          detectedManageButton.getButton(),
+          PossibleConsentButton.styleProperties
+        ) &&
+        !hasDarkPatternClass(detectedManageButton.getButton())
+      ) {
+        duplicateStyles(
+          detectedAcceptButton.getButton(),
+          detectedManageButton.getButton(),
+          PossibleConsentButton.styleProperties
+        );
+      }
+    }
   }
 
   getPossibleCookiePopups(pageContent: HTMLElement): PossibleCookiePopup[] {
