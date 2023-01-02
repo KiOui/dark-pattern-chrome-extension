@@ -14,6 +14,9 @@ import {
   getAcceptButtonScore,
   getRejectButtonScore,
   getManageButtonScore,
+  getAcceptButtonOccurrenceScore,
+  getRejectButtonOccurrenceScore,
+  getManageButtonOccurrenceScore,
 } from "@/inc/button-frequencies";
 
 abstract class Filter {
@@ -185,22 +188,49 @@ class PossibleCookiePopup {
 }
 
 class PossibleConsentButton {
-  static styleProperties = ["background-color", "font-size", "color"];
+  static styleProperties = [
+    "background-color",
+    "font-size",
+    "color",
+    "font-weight",
+    "font-family",
+    "text-decoration",
+    "opacity",
+    "border-radius",
+    "border",
+    "text-align",
+    "background-image",
+    "text-shadow",
+    "box-shadow",
+    "-webkit-box-shadow",
+    "padding",
+    "line-height",
+  ];
   button: HTMLElement;
   acceptScore: number;
   rejectScore: number;
   manageScore: number;
 
+  acceptOccurrenceScore: number;
+  rejectOccurrenceScore: number;
+  manageOccurrenceScore: number;
+
   constructor(
     button: HTMLElement,
     acceptScore: number,
     rejectScore: number,
-    manageScore: number
+    manageScore: number,
+    acceptOccurrenceScore: number,
+    rejectOccurrenceScore: number,
+    manageOccurrenceScore: number
   ) {
     this.button = button;
     this.acceptScore = acceptScore;
     this.rejectScore = rejectScore;
     this.manageScore = manageScore;
+    this.acceptOccurrenceScore = acceptOccurrenceScore;
+    this.rejectOccurrenceScore = rejectOccurrenceScore;
+    this.manageOccurrenceScore = manageOccurrenceScore;
   }
 
   static createPossibleConsentButton(
@@ -219,7 +249,10 @@ class PossibleConsentButton {
       element,
       getAcceptButtonScore(filteredText),
       getRejectButtonScore(filteredText),
-      getManageButtonScore(filteredText)
+      getManageButtonScore(filteredText),
+      getAcceptButtonOccurrenceScore(filteredText),
+      getRejectButtonOccurrenceScore(filteredText),
+      getManageButtonOccurrenceScore(filteredText)
     );
   }
 
@@ -237,6 +270,18 @@ class PossibleConsentButton {
 
   getManageScore() {
     return this.manageScore;
+  }
+
+  getAcceptOccurrenceScore() {
+    return this.acceptOccurrenceScore;
+  }
+
+  getRejectOccurrenceScore() {
+    return this.rejectOccurrenceScore;
+  }
+
+  getManageOccurrenceScore() {
+    return this.manageOccurrenceScore;
   }
 }
 
@@ -308,10 +353,14 @@ class CookieBannerAnalyzer extends PageAnalyzer {
         let isPossibleAcceptPrevious = 0;
         let isPossibleAcceptCurrent = 0;
         if (previousValue !== null) {
-          isPossibleAcceptPrevious = previousValue.getAcceptScore();
+          isPossibleAcceptPrevious =
+            previousValue.getAcceptScore() *
+            previousValue.getAcceptOccurrenceScore();
         }
         if (currentValue !== null) {
-          isPossibleAcceptCurrent = currentValue.getAcceptScore();
+          isPossibleAcceptCurrent =
+            currentValue.getAcceptScore() *
+            currentValue.getAcceptOccurrenceScore();
         }
 
         if (isPossibleAcceptPrevious === 0 && isPossibleAcceptCurrent === 0) {
@@ -339,10 +388,14 @@ class CookieBannerAnalyzer extends PageAnalyzer {
         let isPossibleManagePrevious = 0;
         let isPossibleManageCurrent = 0;
         if (previousValue !== null) {
-          isPossibleManagePrevious = previousValue.getManageScore();
+          isPossibleManagePrevious =
+            previousValue.getManageScore() *
+            previousValue.getManageOccurrenceScore();
         }
         if (currentValue !== null) {
-          isPossibleManageCurrent = currentValue.getManageScore();
+          isPossibleManageCurrent =
+            currentValue.getManageScore() *
+            currentValue.getManageOccurrenceScore();
         }
 
         if (isPossibleManagePrevious === 0 && isPossibleManageCurrent === 0) {
@@ -370,10 +423,14 @@ class CookieBannerAnalyzer extends PageAnalyzer {
         let isPossibleRejectPrevious = 0;
         let isPossibleRejectCurrent = 0;
         if (previousValue !== null) {
-          isPossibleRejectPrevious = previousValue.getRejectScore();
+          isPossibleRejectPrevious =
+            previousValue.getRejectScore() *
+            previousValue.getRejectOccurrenceScore();
         }
         if (currentValue !== null) {
-          isPossibleRejectCurrent = currentValue.getRejectScore();
+          isPossibleRejectCurrent =
+            currentValue.getRejectScore() *
+            currentValue.getRejectOccurrenceScore();
         }
 
         if (isPossibleRejectPrevious === 0 && isPossibleRejectCurrent === 0) {
@@ -392,15 +449,11 @@ class CookieBannerAnalyzer extends PageAnalyzer {
 
   alterBlock(element: HTMLElement) {
     super.alterBlock(element);
-    console.log("Start alter block");
     const buttonScores = this.getPossibleConsentButtons(element);
     const detectedButtons = this.getConsentButtonsPerType(buttonScores);
     const detectedAcceptButton = detectedButtons[0];
     const detectedRejectButton = detectedButtons[1];
     const detectedManageButton = detectedButtons[2];
-    console.log(detectedAcceptButton?.getButton());
-    console.log(detectedRejectButton?.getButton());
-    console.log(detectedManageButton?.getButton());
     if (detectedAcceptButton !== null && detectedRejectButton !== null) {
       if (
         hasStylingDifferences(

@@ -127,7 +127,6 @@ export default class HighlightPopup extends Vue {
       chrome.runtime.sendMessage(
         { type: "get_detected_patterns", tabId: tabId },
         (result: FoundDarkPattern[]) => {
-          console.log(result);
           this.darkPatternsFound = result;
         }
       );

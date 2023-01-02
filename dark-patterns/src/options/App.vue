@@ -15,7 +15,7 @@
           type="checkbox"
           role="switch"
           id="showBadgeNumberInput"
-          v-model="formData[`analyze_${darkPattern.name}`]"
+          v-model="formData[`analyze_${darkPattern.type}`]"
         />
       </div>
       <input

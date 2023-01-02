@@ -28,21 +28,27 @@ const doRun = () => {
   if (lastRun !== null && Date.now() <= lastRun + MINIMUM_TIME_BETWEEN_RUNS) {
     return;
   }
-  console.log("Doing run...");
 
   lastRun = Date.now();
   const content = document.querySelector("body");
   if (content !== null) {
-    const darkPatternsCollection = new DarkPatternsCollection();
-    const detectedPatterns = analysePageContent(
-      content,
-      darkPatternsCollection.getDarkPatterns()
-    );
-    alterPageContent(detectedPatterns, darkPatternsCollection);
-    chrome.runtime.sendMessage({
-      type: "set_detected_patterns",
-      tabId: tabId,
-      patterns: detectedPatterns,
+    chrome.storage.sync.get(["highlightSettings"]).then((settings) => {
+      settings = settings["highlightSettings"];
+      const darkPatternsCollection = new DarkPatternsCollection();
+      const darkPatterns = darkPatternsCollection.getDarkPatterns();
+      const enabledDarkPatterns: DarkPattern[] = [];
+      for (let i = 0; i < darkPatterns.length; i++) {
+        if (settings[`analyze_${darkPatterns[i].type}`] !== false) {
+          enabledDarkPatterns.push(darkPatterns[i]);
+        }
+      }
+      const detectedPatterns = analysePageContent(content, enabledDarkPatterns);
+      alterPageContent(detectedPatterns, darkPatternsCollection);
+      chrome.runtime.sendMessage({
+        type: "set_detected_patterns",
+        tabId: tabId,
+        patterns: detectedPatterns,
+      });
     });
   }
   window.setTimeout(doRun, 5000);

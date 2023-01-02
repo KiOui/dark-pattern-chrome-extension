@@ -118,6 +118,70 @@ function hasDarkPatternClass(element: HTMLElement) {
   return false;
 }
 
+function getIDPathToRoot(element: HTMLElement): HTMLElement[] {
+  const pathToRoot = [];
+  for (
+    let rotateElement: HTMLElement | null = element;
+    rotateElement !== document.body && rotateElement !== null;
+    rotateElement = rotateElement.parentElement
+  ) {
+    pathToRoot.push(rotateElement);
+    if (rotateElement.id === "") {
+      const randomId = Math.random().toString().substring(2, 9);
+      const randomStyleName = `_dark_pattern_${randomId}`;
+      rotateElement.id = `${randomStyleName}`;
+    }
+  }
+  pathToRoot.reverse();
+  return pathToRoot;
+}
+
+function createStringPathToRoot(pathToRoot: HTMLElement[]): string {
+  let pathAsString = "";
+  for (let i = 0; i < pathToRoot.length; i++) {
+    let selectorToAdd = pathToRoot[i].id;
+    if (!isNaN(parseInt(selectorToAdd[0], 10))) {
+      selectorToAdd = `\\3${selectorToAdd[0]} ` + selectorToAdd.substring(1);
+    }
+    if (selectorToAdd.startsWith("#")) {
+      selectorToAdd = selectorToAdd.substring(1);
+    }
+    pathAsString = pathAsString + "#" + selectorToAdd;
+    if (i < pathToRoot.length - 1) {
+      pathAsString = pathAsString + " ";
+    }
+  }
+  return pathAsString;
+}
+
+function duplicatePseudoSelectorStyles(
+  fromElement: HTMLElement,
+  pseudoSelector: string,
+  pathToRoot: HTMLElement[],
+  stylesToCopy: string[]
+) {
+  const stylesFromPseudoSelector = window.getComputedStyle(
+    fromElement,
+    pseudoSelector
+  );
+  if (stylesFromPseudoSelector.getPropertyValue("content") !== "none") {
+    let stylingToAdd = `html body ${createStringPathToRoot(
+      pathToRoot
+    )}:${pseudoSelector} {\n`;
+    for (let i = 0; i < stylesToCopy.length; i++) {
+      const styleToCopy = stylesToCopy[i];
+      const styleToCopyValue =
+        stylesFromPseudoSelector.getPropertyValue(styleToCopy);
+      stylingToAdd =
+        stylingToAdd + `\t${styleToCopy}: ${styleToCopyValue} !important;\n`;
+    }
+    stylingToAdd = stylingToAdd + "}";
+    const styleSheet = document.createElement("style");
+    styleSheet.innerHTML = stylingToAdd;
+    document.body.appendChild(styleSheet);
+  }
+}
+
 function duplicateStyles(
   fromElement: HTMLElement,
   toElement: HTMLElement,
@@ -126,29 +190,34 @@ function duplicateStyles(
   const randomId = Math.random().toString().substring(2, 9);
   const randomStyleName = `_dark_pattern_${randomId}`;
   toElement.classList.add(randomStyleName);
+  if (toElement.id === "") {
+    toElement.id = randomStyleName;
+  }
+
+  const pathToRoot = getIDPathToRoot(toElement);
 
   const stylesFromElement = window.getComputedStyle(fromElement);
-  let stylingToAdd = `.${randomStyleName} {\n`;
+  let stylingToAdd = `.${randomStyleName}, html body ${createStringPathToRoot(
+    pathToRoot
+  )} {\n`;
   for (let i = 0; i < stylesToCopy.length; i++) {
     const styleToCopy = stylesToCopy[i];
     const styleToCopyValue = stylesFromElement.getPropertyValue(styleToCopy);
     stylingToAdd =
       stylingToAdd + `\t${styleToCopy}: ${styleToCopyValue} !important;\n`;
   }
-  stylingToAdd = stylingToAdd + `}\n\n.${randomStyleName}:hover {\n`;
-  const stylesFromElementHover = window.getComputedStyle(fromElement, ":hover");
-  for (let i = 0; i < stylesToCopy.length; i++) {
-    const styleToCopy = stylesToCopy[i];
-    const styleToCopyValue =
-      stylesFromElementHover.getPropertyValue(styleToCopy);
-    stylingToAdd =
-      stylingToAdd + `\t${styleToCopy}: ${styleToCopyValue} !important;\n`;
-  }
   stylingToAdd = stylingToAdd + "}";
 
   const styleSheet = document.createElement("style");
-  styleSheet.innerText = stylingToAdd;
+  styleSheet.innerHTML = stylingToAdd;
   document.body.appendChild(styleSheet);
+  duplicatePseudoSelectorStyles(
+    fromElement,
+    "before",
+    pathToRoot,
+    stylesToCopy
+  );
+  duplicatePseudoSelectorStyles(fromElement, "after", pathToRoot, stylesToCopy);
   return randomStyleName;
 }
 
